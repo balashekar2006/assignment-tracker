@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Register — Assignment Tracker{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-tag">📚 Create Account</div>
+    <div class="auth-title">Join as a <span style="color:var(--accent)">Student</span></div>
+    <div class="auth-sub">// your own private assignment dashboard</div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="flash {{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="/register">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="e.g. rahul2024" required autofocus/>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="your@email.com" required/>
+      </div>
+      <div class="form-group">
+        <label>Password (min 6 characters)</label>
+        <input type="password" name="password" placeholder="••••••••" required/>
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" name="confirm" placeholder="••••••••" required/>
+      </div>
+      <button type="submit" class="btn-main">Create Account →</button>
+    </form>
+
+    <div class="auth-switch">
+      Already have an account? <a href="/login">Login here</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

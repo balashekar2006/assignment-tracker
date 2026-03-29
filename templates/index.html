@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — {{ username }}{% endblock %}
+
+{% block nav %}
+<nav>
+  <a href="/" class="nav-brand">📚 Tracker</a>
+  <div class="nav-user">Logged in as <span>{{ username }}</span></div>
+  <a href="/profile" class="nav-link">👤 Profile</a>
+  <a href="/logout" class="nav-link danger">Logout</a>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+
+  <header>
+    <div class="header-tag">👤 {{ username }}'s Dashboard</div>
+    <h1>Your <span>Assignments</span></h1>
+    <p class="subtitle">// only you can see these — private to your account</p>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat total">  <div class="stat-num">{{ total }}</div>  <div class="stat-label">Total</div></div>
+    <div class="stat pending"><div class="stat-num">{{ pending }}</div><div class="stat-label">Pending</div></div>
+    <div class="stat overdue"><div class="stat-num">{{ overdue }}</div><div class="stat-label">Overdue</div></div>
+    <div class="stat done">  <div class="stat-num">{{ done }}</div>   <div class="stat-label">Completed</div></div>
+  </div>
+
+  <!-- FORM -->
+  <div class="form-card">
+    <div class="form-title">+ Add New Assignment</div>
+    <form action="/add" method="POST">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Assignment Name *</label>
+          <input type="text" name="name" placeholder="e.g. Math Chapter 5 Exercises" required/>
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          <input type="text" name="subject" placeholder="e.g. Mathematics"/>
+        </div>
+        <div class="form-group">
+          <label>Due Date *</label>
+          <input type="date" name="due_date" value="{{ today }}" required/>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select name="priority">
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select name="type">
+            <option>Homework</option><option>Project</option>
+            <option>Exam</option><option>Quiz</option>
+            <option>Reading</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Notes (optional)</label>
+          <textarea name="notes" placeholder="Any extra details..."></textarea>
+        </div>
+      </div>
+      <button type="submit" class="btn-add">Add Assignment →</button>
+    </form>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="toolbar">
+    <a href="/?filter=all"     class="filter-btn {% if active=='all' %}active{% endif %}">All</a>
+    <a href="/?filter=pending" class="filter-btn {% if active=='pending' %}active{% endif %}">Pending</a>
+    <a href="/?filter=overdue" class="filter-btn {% if active=='overdue' %}active{% endif %}">Overdue</a>
+    <a href="/?filter=done"    class="filter-btn {% if active=='done' %}active{% endif %}">Completed</a>
+  </div>
+
+  <div class="section-label">{{ active|capitalize }} — {{ tasks|length }} item{% if tasks|length != 1 %}s{% endif %}</div>
+
+  <div class="task-list">
+    {% if tasks %}
+      {% for t in tasks %}
+      <div class="task priority-{{ t.priority }}{% if t.done %} is-done{% endif %}{% if t.due_status=='overdue' %} is-overdue{% endif %}">
+        <a href="/toggle/{{ t.id }}" class="check-btn" title="Toggle complete">{% if t.done %}✓{% endif %}</a>
+        <div class="task-body">
+          <div class="task-top">
+            <span class="task-name">{{ t.name }}</span>
+            <span class="badge badge-subject">{{ t.subject }}</span>
+            <span class="badge badge-{{ t.priority }}">{{ t.priority }}</span>
+            <span class="badge badge-type">{{ t.type }}</span>
+            {% if t.due_status == 'overdue' and not t.done %}<span class="badge badge-overdue">OVERDUE</span>{% endif %}
+          </div>
+          {% if t.notes %}<div class="task-desc">{{ t.notes }}</div>{% endif %}
+          <div class="task-due {{ t.due_status }}">
+            {% if t.due_status == 'overdue' %}⚠️
+            {% elif t.due_status in ['today','soon'] %}⏰
+            {% else %}📅{% endif %}
+            {{ t.due_label }}
+          </div>
+        </div>
+        <div class="task-actions">
+          <a href="/delete/{{ t.id }}" class="btn-del" title="Delete"
+             onclick="return confirm('Delete this assignment?')">✕</a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">
+        <div class="empty-icon">📭</div>
+        No assignments here.{% if active=='all' %} Add one above!{% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

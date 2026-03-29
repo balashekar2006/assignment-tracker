@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Login — Assignment Tracker{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-tag">📚 Student Login</div>
+    <div class="auth-title">Welcome <span style="color:var(--accent)">Back</span></div>
+    <div class="auth-sub">// login to see your assignments</div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="flash {{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="/login">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="your username" required autofocus/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="••••••••" required/>
+      </div>
+      <button type="submit" class="btn-main">Login →</button>
+    </form>
+
+    <div class="auth-switch">
+      Don't have an account? <a href="/register">Register here</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

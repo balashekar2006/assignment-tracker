@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}Profile — {{ username }}{% endblock %}
+
+{% block nav %}
+<nav>
+  <a href="/" class="nav-brand">📚 Tracker</a>
+  <div class="nav-user">Logged in as <span>{{ username }}</span></div>
+  <a href="/" class="nav-link">Dashboard</a>
+  <a href="/logout" class="nav-link danger">Logout</a>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+
+  <header>
+    <div class="header-tag">👤 My Profile</div>
+    <h1>Account <span>Settings</span></h1>
+    <p class="subtitle">// manage your account and view your stats</p>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- TOP GRID: Avatar + Stats -->
+  <div class="profile-grid">
+
+    <!-- AVATAR + INFO -->
+    <div class="profile-card">
+      <div class="card-title">🎓 Student Info</div>
+      <div class="avatar">{{ username[0].upper() }}</div>
+      <div class="profile-name">{{ user.username }}</div>
+      <div class="profile-email">📧 {{ user.email }}</div>
+      <div class="profile-joined">📅 Joined: {{ user.created[:10] }}</div>
+
+      <div class="stat-row">
+        <div class="mini-stat">
+          <div class="mini-stat-num" style="color:var(--accent2)">{{ total }}</div>
+          <div class="mini-stat-label">Total</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-num" style="color:var(--accent)">{{ pending }}</div>
+          <div class="mini-stat-label">Pending</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-num" style="color:var(--danger)">{{ overdue }}</div>
+          <div class="mini-stat-label">Overdue</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-num" style="color:var(--success)">{{ done }}</div>
+          <div class="mini-stat-label">Done</div>
+        </div>
+      </div>
+
+      <!-- COMPLETION PROGRESS -->
+      {% if total > 0 %}
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Completion Rate</span>
+          <span>{{ ((done / total) * 100) | int }}%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar" style="width:{{ ((done / total) * 100) | int }}%"></div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- TOP SUBJECTS -->
+    <div class="profile-card">
+      <div class="card-title">📚 Top Subjects</div>
+      {% if subjects %}
+        {% set max_count = subjects[0].cnt %}
+        {% for s in subjects %}
+        <div class="subject-row">
+          <span class="subject-name">{{ s.subject }}</span>
+          <div class="subject-bar-wrap">
+            <div class="subject-bar" style="width:{{ ((s.cnt / max_count) * 100) | int }}%"></div>
+          </div>
+          <span class="subject-count">{{ s.cnt }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="color:var(--muted);font-size:13px;">No assignments yet.</div>
+      {% endif %}
+
+      <!-- RECENT ACTIVITY -->
+      <div class="card-title" style="margin-top:24px;">🕐 Recent Activity</div>
+      {% if recent %}
+        {% for r in recent %}
+        <div class="recent-item">
+          <div class="recent-dot {% if r.done %}done{% else %}pending{% endif %}"></div>
+          <span class="recent-name">{{ r.name }}</span>
+          <span class="recent-date">{{ r.due_date }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="color:var(--muted);font-size:13px;">No recent activity.</div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- SETTINGS GRID -->
+  <div class="profile-grid">
+
+    <!-- CHANGE EMAIL -->
+    <div class="profile-card">
+      <div class="card-title">✉️ Update Email</div>
+      <form method="POST" action="/profile">
+        <input type="hidden" name="action" value="update_email"/>
+        <div class="settings-row">
+          <div class="settings-row-title">Current Email</div>
+          <div class="settings-row-sub">{{ user.email }}</div>
+          <div class="inline-form">
+            <input type="email" name="email" placeholder="new@email.com" required/>
+            <button type="submit" class="btn-sm btn-save">Update</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- CHANGE PASSWORD -->
+    <div class="profile-card">
+      <div class="card-title">🔒 Change Password</div>
+      <form method="POST" action="/profile">
+        <input type="hidden" name="action" value="change_password"/>
+        <div class="settings-row">
+          <div class="settings-row-title">Current Password</div>
+          <input type="password" name="old_password" placeholder="••••••••" required style="margin-bottom:10px;"/>
+          <div class="settings-row-title">New Password</div>
+          <input type="password" name="new_password" placeholder="min 6 characters" required style="margin-bottom:10px;"/>
+          <div class="settings-row-title">Confirm New Password</div>
+          <input type="password" name="confirm_password" placeholder="••••••••" required style="margin-bottom:14px;"/>
+          <button type="submit" class="btn-sm btn-save" style="width:100%;">Change Password</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- DANGER ZONE -->
+  <div class="profile-card danger-zone">
+    <div class="card-title">⚠️ Danger Zone</div>
+    <div class="settings-row">
+      <div class="settings-row-title">Delete My Account</div>
+      <div class="settings-row-sub">
+        This will permanently delete your account and ALL your assignments. This cannot be undone!<br/>
+        Type your username <strong style="color:var(--text)">{{ username }}</strong> below to confirm.
+      </div>
+      <form method="POST" action="/profile" onsubmit="return confirm('Are you SURE? This cannot be undone!')">
+        <input type="hidden" name="action" value="delete_account"/>
+        <div class="inline-form">
+          <input type="text" name="confirm_delete" placeholder="Type your username to confirm"/>
+          <button type="submit" class="btn-sm btn-danger">Delete Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
