@@ -3,10 +3,8 @@ import sqlite3, hashlib, os
 from datetime import date, datetime
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'tracker-secret-2024-xyz')
-
-# Use /tmp so Render can write the database file
-DB = '/tmp/tracker.db'
+app.secret_key = 'tracker-secret-2024-xyz'
+DB = 'tracker.db'
 
 # ── DATABASE ──────────────────────────────────────────────────────
 def get_db():
@@ -310,12 +308,7 @@ def profile():
     )
 
 
-# Always init DB (Render uses gunicorn which skips __main__)
-init_db()
-
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    print(f"\n✅ Tracker running! Go to: http://127.0.0.1:{port}\n")
-    app.run(host='0.0.0.0', port=port, debug=False)
-
-# Always init DB when gunicorn starts (Render uses gunicorn, not __main__)
+    init_db()
+    print("\n✅ Tracker running! Go to: http://127.0.0.1:5000\n")
+    app.run(debug=True)
